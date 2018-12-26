@@ -15,7 +15,7 @@ enum AmazonFireTVApp: String {
 struct AmazonFireTV {
 	let ipAddress: String
 	
-	struct Constants {
+	private struct Constants {
 		static let adbPath = "/usr/local/bin/adb"
 	}
 	
