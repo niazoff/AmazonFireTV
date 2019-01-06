@@ -1,6 +1,6 @@
 import Vapor
 
-/// Register your application's routes here.
+/// Register application's routes.
 public func routes(_ router: Router) throws {
 	router.put("launch_app") { req -> Future<HTTPStatus> in
 		return try req.content.decode(LaunchAppContent.self)
