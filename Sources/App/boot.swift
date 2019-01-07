@@ -19,7 +19,7 @@ public func boot(_ app: Application) throws {
 private func setupLaunch(_ app: AmazonFireTVApp, on tv: AmazonFireTV, atHour hour: Int, in eventLoop: EventLoop) {
 	let calendar = Calendar.current
 	let now = Date()
-	guard let appLaunchDate = calendar.nextDate(after: now, matching: DateComponents(hour: 20, minute: 50), matchingPolicy: .strict) else { return }
+	guard let appLaunchDate = calendar.nextDate(after: now, matching: DateComponents(hour: hour), matchingPolicy: .strict) else { return }
 	let appLaunchDelay = Int(appLaunchDate.timeIntervalSince(now))
 	eventLoop.scheduleRepeatedTask(
 		initialDelay: .seconds(appLaunchDelay),
