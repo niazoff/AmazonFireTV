@@ -34,7 +34,7 @@ struct AmazonFireTV {
 	func launch(_ app: AmazonFireTVApp, eventLoop: EventLoop) -> Future<Void> {
 		guard #available(macOS 10.13, *)
 			else { return eventLoop.newFailedFuture(error: AmazonFireTVError.notAvailableOnThisVersion) }
-		return shell(Constants.adbPath, "shell", "monkey", "--pct-syskeys", "0", "-p", app.packageName, "1", eventLoop: eventLoop)
+		return shell(Constants.adbPath, "-s", ipAddress, "shell", "monkey", "--pct-syskeys", "0", "-p", app.packageName, "1", eventLoop: eventLoop)
 	}
 }
 
