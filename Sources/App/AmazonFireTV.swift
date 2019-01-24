@@ -1,7 +1,7 @@
 import Vapor
 
-enum AmazonFireTVApp: String {
-	case screenCloud = "screen_cloud"
+enum AmazonFireTVApp: String, Codable {
+	case screenCloud
 	case abc
 	
 	var packageName: String {

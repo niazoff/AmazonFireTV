@@ -1,25 +1,22 @@
 import Vapor
 
-let tvIPAddresses = ["192.168.1.61", "192.168.1.34"]
-
-private struct Constants {
-	static let abcStartHour = 7
-	static let screenCloudStartHour = 9
+struct Constants {
+	static let bootDataURL = "https://api.myjson.com/bins/8u018"
 }
 
 /// Called after application has initialized.
 public func boot(_ app: Application) throws {
-	let tvs = tvIPAddresses.map(AmazonFireTV.init)
-	for tv in tvs {
-		setupLaunch(.abc, on: tv, atHour: Constants.abcStartHour, in: app.eventLoop)
-		setupLaunch(.screenCloud, on: tv, atHour: Constants.screenCloudStartHour, in: app.eventLoop)
-	}
+	try app.client().get(Constants.bootDataURL).flatMap { res in
+		return try res.content.decode(BootData.self).do { bootData in
+			bootData.tvIpAddresses.map(AmazonFireTV.init).forEach { tv in bootData.scheduledAppLaunches.forEach { setupLaunch($0.app, on: tv, atHour: $0.hour, minute: $0.minute, in: app.eventLoop) } }
+		}
+	}.catch { print($0) }
 }
 
-private func setupLaunch(_ app: AmazonFireTVApp, on tv: AmazonFireTV, atHour hour: Int, in eventLoop: EventLoop) {
+private func setupLaunch(_ app: AmazonFireTVApp, on tv: AmazonFireTV, atHour hour: Int, minute: Int? = nil, in eventLoop: EventLoop) {
 	let calendar = Calendar.current
 	let now = Date()
-	guard let appLaunchDate = calendar.nextDate(after: now, matching: DateComponents(hour: hour), matchingPolicy: .strict) else { return }
+	guard let appLaunchDate = calendar.nextDate(after: now, matching: DateComponents(hour: hour, minute: minute), matchingPolicy: .strict) else { return }
 	let appLaunchDelay = Int(appLaunchDate.timeIntervalSince(now))
 	eventLoop.scheduleRepeatedTask(
 		initialDelay: .seconds(appLaunchDelay),
@@ -27,5 +24,16 @@ private func setupLaunch(_ app: AmazonFireTVApp, on tv: AmazonFireTV, atHour hou
 			return tv.connect(eventLoop)
 				.then { tv.launch(app, eventLoop: eventLoop) }
 				.then { tv.disconnect(eventLoop) }
+	}
+}
+
+struct BootData: Content {
+	let tvIpAddresses: [String]
+	let scheduledAppLaunches: [ScheduledAppLaunch]
+	
+	struct ScheduledAppLaunch: Codable {
+		let app: AmazonFireTVApp
+		let hour: Int
+		let minute: Int?
 	}
 }
